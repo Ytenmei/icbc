@@ -92,7 +92,7 @@
 
 <script>
 import areaList from '@/components/area.js'
-import hybridApp from '@/api/hybrid_app.js'
+// import hybridApp from '@/api/hybrid_app.js'
 export default {
   name: 'orderSure',
   data () {
@@ -123,7 +123,10 @@ export default {
       this.address = !address
     },
     onSubmit () {
-      hybridApp.getMyLocation()
+      this.$router.push({
+        name: 'finishPay',
+        query: {}
+      })
     },
     onSave (content) {
       this.userAddRess.name = content.name

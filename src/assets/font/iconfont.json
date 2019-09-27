@@ -1,0 +1,23 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "8288980",
+      "name": "勾",
+      "font_class": "gou",
+      "unicode": "e867",
+      "unicode_decimal": 59495
+    },
+    {
+      "icon_id": "9826657",
+      "name": "错误",
+      "font_class": "cuowu",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    }
+  ]
+}

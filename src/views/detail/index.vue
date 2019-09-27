@@ -3,7 +3,7 @@
     <div class="narBar">
       <van-row>
         <van-col span="4">
-          <van-icon color="#e43047" name="arrow-left" />
+          <van-icon color="#e43047" name="arrow-left" @click="$router.back()" />
         </van-col>
         <van-col span="14" offset="1">
           <van-tabs tpe="card" v-model="active">
@@ -26,7 +26,7 @@
       <!-- 商品信息 -->
       <div class="goodDetail">
         <div>{{MobileProductByIdOpen.nameFull}}</div>
-        <span>￥899.00</span>
+        <span>￥{{MobileProductByIdOpen.salePrice}}</span>
       </div>
       <!-- 服务 -->
       <van-row class="serveData">
@@ -34,7 +34,7 @@
         <van-col span="20">本商品由{{MobileProductByIdOpen.accountMemberName}}提供配送及服务</van-col>
       </van-row>
       <!-- 选择属性 -->
-      <div class="serveData">
+      <div class="serveData isSku">
         <van-cell @click="handleShowSku(show)" title="选择属性" is-link />
       </div>
       <template>
@@ -47,39 +47,89 @@
             <van-icon class="shop-o" name="shop-o" />
             <div class="shop" @click="$router.push({ name: 'goodList'})">店铺</div>
           </div>
-          <button class="buy">立即购买</button>
+          <button @click="$router.push({
+            name: 'orderSure',
+            query: {
+            }
+          })" class="buy">立即购买</button>
         </div>
       </template>
     </div>
     <!-- sku -->
-    <!-- 图文详情 -->
-    <!-- <template>
-      <div class="photoDetail">
-        <img class="iconImg" src="@/assets/huojian.png" alt="">
-        <span class="detailText">上拉查看商品详情</span>
-      </div>
-    </template> -->
+    <van-popup
+      v-model="show"
+      round
+      position="bottom"
+      :style="{ height: '50%' }"
+    >
+      <template>
+        <div>
+          <van-card
+            class="productCard"
+            price="2.00"
+            desc="已选：200,白色"
+            title="剩余227件"
+            thumb="https://img.yzcdn.cn/vant/t-thirt.jpg"
+          />
+          <van-divider class="isSkuDownDivider" />
+          <div class="productConten">
+            <div class="product-delcom" >
+              <p>颜色</p>
+              <ul class="product-footerlist">
+                <li class="productActive">白色</li>
+                <li class="productActive">黄色</li>
+                <li class="productActive">绿色</li>
+                <li class="productActive">红色</li>
+                <li class="productActive">蓝色</li>
+                <li class="productActive">蓝色</li>
+                <li class="productActive">蓝色</li>
+                <li class="productActive">蓝色</li>
+              </ul>
+              <van-divider />
+            </div>
+            <div class="product-delcom" >
+              <p>尺寸</p>
+              <ul class="product-footerlist">
+                <li class="productActive">33</li>
+                <li class="productActive">34</li>
+                <li class="productActive">35</li>
+                <li class="productActive">36</li>
+                <li class="productActive">37</li>
+                <li class="productActive">38</li>
+                <li class="productActive">39</li>
+                <li class="productActive">39</li>
+                <li class="productActive">39</li>
+              </ul>
+              <van-divider />
+            </div>
+          </div>
+        </div>
+      </template>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import {
   MobileProductByIdOpen,
+  ProductDescProductId,
   GetMoblieProductAttrs
 } from '@/api/detail.js'
 export default {
   name: 'detail',
   data () {
     return {
+      id: this.$route.params.id,
       phone: 15901508754,
       MobileProductByIdOpen: '',
       active: 0, // tabs
-      show: false // isSku
+      show: true // isSku
     }
   },
   created () {
-    this.handleMobileProductByIdOpen()
-    this.handleGetMoblieProductAttrs()
+    this.handleShowProduct()
+    this.handleShowProductDesc()
+    this.handleShowProductAttrs()
   },
   methods: {
     // 购买
@@ -88,18 +138,19 @@ export default {
     handleShowSku (show) {
       this.show = !show
     },
-    // 购买
-    onSubmit () {},
     handleShowPhone () {
       window.location.href = 'tel://' + this.phone
     },
-    async handleMobileProductByIdOpen () {
-      const data = await MobileProductByIdOpen()
+    async handleShowProduct () {
+      const data = await MobileProductByIdOpen(this.id)
       this.MobileProductByIdOpen = data
+    },
+    async handleShowProductDesc () {
+      const data = await ProductDescProductId(this.id)
       console.log(data)
     },
-    async handleGetMoblieProductAttrs () {
-      const data = await GetMoblieProductAttrs()
+    async handleShowProductAttrs () {
+      const data = await GetMoblieProductAttrs(this.id)
       console.log(data)
     }
   }
@@ -177,6 +228,9 @@ img {
 .serveData {
   margin-top: 19px;
 }
+.isSku {
+  margin-bottom: 200px;
+}
 .buyMock {
   width: 100%;
   height: 110px;
@@ -242,5 +296,59 @@ img {
   color: #999999;
   left: 275px;
   top: 23px;
+}
+.van-popup {
+  padding: 15px 30px;
+  box-sizing: border-box;
+}
+.productCard {
+  background-color: #fff;
+  /deep/.van-card__title {
+    color: #ccc;
+    position: absolute;
+    top: 70px;
+    width: 100%;
+  }
+  /deep/img {
+    background: #000;
+    border-radius: 10px;
+  }
+  /deep/.van-card__price {
+    font-size: 40px;
+  }
+  /deep/.van-card__desc {
+    color: #ccc;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+}
+.isSkuDownDivider {
+  margin: 0;
+}
+.isSKutitle {
+  font-size: 28px;
+}
+.productConten {
+  .product-delcom p {
+    font-size: 24px;
+  }
+  .product-footerlist {
+    display: flex;
+    flex-wrap: wrap;
+    li {
+      padding: 20px;
+      background-color: #f0f2f5;
+      margin: 10px;
+      color:#101010 ;
+      font-size: 26px;
+      border-radius: 8px;
+      .productActive {
+        background-color: #FDE7EA;
+        color: red;
+        border: 1px solid #FDE7EA;
+      }
+    }
+  }
 }
 </style>

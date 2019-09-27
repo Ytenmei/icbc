@@ -1,45 +1,43 @@
 import request from '@/utils/request'
 
-// 商品信息
+export const GetSellerProductByPage = pageIndex => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/GetSellerProductByPage',
+    data: {
+      orderType: 1,
+      pageIndex,
+      pageSize: 10
+    }
+  })
+}
+
 export const MobileProductByIdOpen = id => {
   return request({
     method: 'POST',
-    url: '/api/Mall/MobileProductByIdOpen',
+    url: '/api/Icbc/MobileProductByIdOpen',
     data: {
-      id: 1078796
+      id
     }
   })
 }
 
-// 商品描述
-export const ProductDescProductId = () => {
+export const ProductDescProductId = id => {
   return request({
     method: 'POST',
-    url: '/GetMobileAdsIndex',
+    url: '/api/Icbc/ProductDescProductId',
     data: {
-      id: 1078796
+      id
     }
   })
 }
 
-// 获取评论
-export const SelectProductCommentsByPage = () => {
+export const GetMoblieProductAttrs = id => {
   return request({
     method: 'POST',
-    url: '/GetMobileAdsIndex',
+    url: '/api/Icbc/GetMoblieProductAttrs',
     data: {
-      id: 1078796
-    }
-  })
-}
-
-// 获取属性
-export const GetMoblieProductAttrs = () => {
-  return request({
-    method: 'POST',
-    url: '/api/Mall/GetMoblieProductAttrs',
-    data: {
-      pId: 2085361
+      id
     }
   })
 }
