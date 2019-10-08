@@ -56,7 +56,7 @@
       </template>
     </div>
     <!-- sku -->
-    <van-popup
+    <!-- <van-popup
       v-model="show"
       round
       position="bottom"
@@ -76,36 +76,37 @@
             <div class="product-delcom" >
               <p>颜色</p>
               <ul class="product-footerlist">
-                <li class="productActive">白色</li>
-                <li class="productActive">黄色</li>
-                <li class="productActive">绿色</li>
-                <li class="productActive">红色</li>
-                <li class="productActive">蓝色</li>
-                <li class="productActive">蓝色</li>
-                <li class="productActive">蓝色</li>
-                <li class="productActive">蓝色</li>
+                <li
+                :key="index"
+                @click="handleSeleted(index)"
+                v-for="(color, index) in color"
+                class="productActive">{{color}}</li>
               </ul>
               <van-divider />
             </div>
             <div class="product-delcom" >
               <p>尺寸</p>
               <ul class="product-footerlist">
-                <li class="productActive">33</li>
-                <li class="productActive">34</li>
-                <li class="productActive">35</li>
-                <li class="productActive">36</li>
-                <li class="productActive">37</li>
-                <li class="productActive">38</li>
-                <li class="productActive">39</li>
-                <li class="productActive">39</li>
-                <li class="productActive">39</li>
+                <li
+                :key="index"
+                v-for="(size, index) in size"
+                class="productActive">{{size}}</li>
               </ul>
               <van-divider />
             </div>
           </div>
         </div>
       </template>
-    </van-popup>
+    </van-popup> -->
+    <van-sku
+      v-model="show"
+      :sku="sku"
+      :goods="goods"
+      :hide-stock="sku.hide_stock"
+      @buy-clicked="onBuyClicked"
+      :show-add-cart-btn=false
+      close-on-click-overlay
+    />
   </div>
 </template>
 
@@ -119,11 +120,79 @@ export default {
   name: 'detail',
   data () {
     return {
+      GetAttrs: {
+        '颜色': {
+          '酒红色': '614',
+          '蓝色': '618',
+          '白色': '600',
+          '军绿色': '616',
+          '褐色': '607',
+          '紫色': '635',
+          '银色': '633',
+          '巧克力色': '625'
+        },
+        '尺码': {
+          '36': '3181',
+          '37': '3183',
+          '38': '3185',
+          '39': '3187',
+          '40': '3190',
+          '41': '3192',
+          '42': '3194',
+          '43': '3196',
+          '44': '3198'
+        }
+      },
       id: this.$route.params.id,
       phone: 15901508754,
       MobileProductByIdOpen: '',
       active: 0, // tabs
       show: true // isSku
+    }
+  },
+  computed: {
+    sku () {
+      return {
+        tree: [
+          Object.keys(this.GetAttrs).forEach(attrs => {
+            return {
+              k: attrs, // skuKeyName：规格类目名称
+              v: Object.keys(this.GetAttrs[attrs]).forEach(key => {
+                return {
+                  name: key,
+                  id: this.GetAttrs[attrs][key],
+                  previewImgUrl: 'https://img.yzcdn.cn/1p.jpg'
+                }
+              }),
+              k_s: 's1' // skuKeyStr：sku 组合列表（下方 list）中当前类目对应的 key 值，value 值会是从属于当前类目的一个规格值 id
+            }
+          })
+        ],
+        // 所有 sku 的组合列表，比如红色、M 码为一个 sku 组合，红色、S 码为另一个组合
+        list: [
+          {
+            id: 2259, // skuId，下单时后端需要
+            price: 100, // 价格（单位分）
+            s1: '1215', // 规格类目 k_s 为 s1 的对应规格值 id
+            s2: '0', // 规格类目 k_s 为 s2 的对应规格值 id
+            s3: '0', // 最多包含3个规格值，为0表示不存在该规格
+            stock_num: 110 // 当前 sku 组合对应的库存
+          }
+        ],
+        price: '1.00', // 默认价格（单位元）
+        stock_num: 227, // 商品总库存
+        // collection_id: 2261, // 无规格商品 skuId 取 collection_id，否则取所选 sku 组合对应的 id
+        // none_sku: false, // 是否无规格商品
+        hide_stock: false // 是否隐藏剩余库存
+      }
+    },
+    goods () {
+      return {
+        // 商品标题
+        title: '测试商品',
+        // 默认商品 sku 缩略图
+        picture: 'https://img.yzcdn.cn/1.jpg'
+      }
     }
   },
   created () {
@@ -133,7 +202,8 @@ export default {
   },
   methods: {
     // 购买
-    onBuyClicked () {
+    onBuyClicked (skuData) {
+
     },
     handleShowSku (show) {
       this.show = !show
