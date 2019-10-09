@@ -55,7 +55,7 @@ export const GetCreateCommonOrder = () => {
       cosList: [{
         accountId: 100000000688, // 店铺ID
         copmList: [{
-          pCollection: '', // 商品属性
+          pCollection: '', // 商品
           pCollectionId: '', // 商品属性ID
           pCount: 1, // 个数
           pId: 1079036 // 商品ID
@@ -64,7 +64,7 @@ export const GetCreateCommonOrder = () => {
         note: '', // 下单备注
         orderType: 1 // 订单类型
       }],
-      couponId: 0, // 优惠券ID
+      couponId: '', // 优惠券ID
       sourceId: 3, // 来源
       userId: 100000050571 // 用户ID
     }

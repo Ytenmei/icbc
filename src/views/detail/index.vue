@@ -8,7 +8,8 @@
         <van-col span="14" offset="1">
           <van-tabs tpe="card" v-model="active">
             <van-tab title="商品"></van-tab>
-            <van-tab title="详情"></van-tab>
+            <van-tab title="详情">
+            </van-tab>
             <van-tab title="评价"></van-tab>
           </van-tabs>
         </van-col>
@@ -39,22 +40,21 @@
       </div>
       <template>
         <div class="buyMock">
-          <div class="customHead list">
+          <div class="customHead list" @click="handleShowPhone">
             <van-icon class="chat" name="chat" />
-            <div class="custom" @click="handleShowPhone">客服</div>
+            <div class="custom" >客服</div>
           </div>
-          <div class="shopHead list">
+          <div class="shopHead list" @click="$router.push({ name: 'goodList'})">
             <van-icon class="shop-o" name="shop-o" />
-            <div class="shop" @click="$router.push({ name: 'goodList'})">店铺</div>
+            <div class="shop">店铺</div>
           </div>
-          <button @click="$router.push({
-            name: 'orderSure',
-            query: {
-            }
-          })" class="buy">立即购买</button>
+          <button @click="onBuyClicked" class="buy">立即购买</button>
         </div>
       </template>
     </div>
+    <template v-if="active === 1" >
+      <div v-html="this.photoDetail.detail"></div>
+    </template>
     <!-- sku -->
     <!-- <van-popup
       v-model="show"
@@ -102,10 +102,12 @@
       v-model="show"
       :sku="sku"
       :goods="goods"
+      :goods-id="this.id"
       :hide-stock="sku.hide_stock"
       @buy-clicked="onBuyClicked"
       :show-add-cart-btn=false
       close-on-click-overlay
+      show-soldout-sku
     />
   </div>
 </template>
@@ -120,69 +122,51 @@ export default {
   name: 'detail',
   data () {
     return {
-      GetAttrs: {
-        '颜色': {
-          '酒红色': '614',
-          '蓝色': '618',
-          '白色': '600',
-          '军绿色': '616',
-          '褐色': '607',
-          '紫色': '635',
-          '银色': '633',
-          '巧克力色': '625'
-        },
-        '尺码': {
-          '36': '3181',
-          '37': '3183',
-          '38': '3185',
-          '39': '3187',
-          '40': '3190',
-          '41': '3192',
-          '42': '3194',
-          '43': '3196',
-          '44': '3198'
-        }
-      },
+      GetAttrs: '',
       id: this.$route.params.id,
       phone: 15901508754,
       MobileProductByIdOpen: '',
       active: 0, // tabs
-      show: true // isSku
+      show: false, // isSku
+      photoDetail: '',
+      priceAttrs: [],
+      none_sku: false
     }
   },
   computed: {
     sku () {
       return {
         tree: [
-          Object.keys(this.GetAttrs).forEach(attrs => {
+          ...Object.keys(this.GetAttrs).map((attrs, index) => {
             return {
               k: attrs, // skuKeyName：规格类目名称
-              v: Object.keys(this.GetAttrs[attrs]).forEach(key => {
+              v: Object.keys(this.GetAttrs[attrs]).map(key => {
                 return {
                   name: key,
                   id: this.GetAttrs[attrs][key],
                   previewImgUrl: 'https://img.yzcdn.cn/1p.jpg'
                 }
               }),
-              k_s: 's1' // skuKeyStr：sku 组合列表（下方 list）中当前类目对应的 key 值，value 值会是从属于当前类目的一个规格值 id
+              k_s: 's' + (index + 1) // skuKeyStr：sku 组合列表（下方 list）中当前类目对应的 key 值，value 值会是从属于当前类目的一个规格值 id
             }
           })
         ],
         // 所有 sku 的组合列表，比如红色、M 码为一个 sku 组合，红色、S 码为另一个组合
-        list: [
-          {
-            id: 2259, // skuId，下单时后端需要
-            price: 100, // 价格（单位分）
-            s1: '1215', // 规格类目 k_s 为 s1 的对应规格值 id
-            s2: '0', // 规格类目 k_s 为 s2 的对应规格值 id
-            s3: '0', // 最多包含3个规格值，为0表示不存在该规格
-            stock_num: 110 // 当前 sku 组合对应的库存
+        list: this.priceAttrs.map((r, index) => {
+          return {
+            id: r.id,
+            price: r.salePrice,
+            s1: r.priceValId.split('-')[0],
+            s2: r.priceValId.split('-')[1] ? r.priceValId.split('-')[1] : '0',
+            s3: r.priceValId.split('-')[2] ? r.priceValId.split('-')[2] : '0',
+            stock_num: r.quantity,
+            pCollection: r.priceValId
           }
-        ],
+        }),
         price: '1.00', // 默认价格（单位元）
-        stock_num: 227, // 商品总库存
+        stock_num: 300, // 商品总库存
         // collection_id: 2261, // 无规格商品 skuId 取 collection_id，否则取所选 sku 组合对应的 id
-        // none_sku: false, // 是否无规格商品
+        none_sku: this.none_sku, // 是否无规格商品
         hide_stock: false // 是否隐藏剩余库存
       }
     },
@@ -196,14 +180,18 @@ export default {
     }
   },
   created () {
-    this.handleShowProduct()
     this.handleShowProductDesc()
     this.handleShowProductAttrs()
   },
   methods: {
     // 购买
-    onBuyClicked (skuData) {
-
+    onBuyClicked (item) {
+      this.show = true
+      console.log(item)
+    },
+    async handleMobileProductByIdOpen () {
+      const data = await MobileProductByIdOpen(this.id)
+      console.log(data)
     },
     handleShowSku (show) {
       this.show = !show
@@ -211,17 +199,28 @@ export default {
     handleShowPhone () {
       window.location.href = 'tel://' + this.phone
     },
-    async handleShowProduct () {
-      const data = await MobileProductByIdOpen(this.id)
-      this.MobileProductByIdOpen = data
-    },
+    // 商品图文信息
     async handleShowProductDesc () {
-      const data = await ProductDescProductId(this.id)
-      console.log(data)
+      const data = await ProductDescProductId(1029221)
+      this.photoDetail = data
     },
+    // sku规格
     async handleShowProductAttrs () {
-      const data = await GetMoblieProductAttrs(this.id)
-      console.log(data)
+      const { priceAttrBaseDictionary, priceAttrs } = await GetMoblieProductAttrs(1)
+      this.GetAttrs = priceAttrBaseDictionary
+      if (priceAttrs.length) {
+        this.none_sku = false
+        this.priceAttrs = priceAttrs
+      }
+    },
+    handletoOrderSure () {
+      if (this.sku.none_sku) {
+        this.$router.push({
+          name: 'orderSure',
+          params: { shopId: this.id }
+        })
+      }
+      this.show = true
     }
   }
 }

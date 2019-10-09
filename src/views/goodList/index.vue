@@ -55,6 +55,8 @@ export default {
   methods: {
     async handleGetDate () {
       const [ { accountContent, productList } ] = await GetSellerProductByPage(this.pageIndex)
+      console.log(accountContent)
+      console.log(productList)
       this.swiper = accountContent
       this.discount = productList
       this.loading = false

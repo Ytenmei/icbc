@@ -27,7 +27,7 @@ export default new Router({
       path: '/',
       component: () => import('@/views/goodList'),
       meta: {
-        keepAlive: true // 需要被缓存
+        keepAlive: false // 需要被缓存
       }
     },
     {
