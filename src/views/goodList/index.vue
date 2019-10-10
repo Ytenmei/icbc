@@ -32,6 +32,19 @@
         />
       </van-list>
     </van-pull-refresh>
+    <!-- <van-popup
+    v-model="address"
+    position="top"
+    :style="{ height: '50%' }"
+    >
+      <van-address-edit
+      :detail-maxlength=200
+      @save="onSave"
+      @delete="onDelete"
+      show-delete
+      show-postal
+      />
+    </van-popup> -->
   </div>
 </template>
 
@@ -55,8 +68,6 @@ export default {
   methods: {
     async handleGetDate () {
       const [ { accountContent, productList } ] = await GetSellerProductByPage(this.pageIndex)
-      console.log(accountContent)
-      console.log(productList)
       this.swiper = accountContent
       this.discount = productList
       this.loading = false

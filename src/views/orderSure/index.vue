@@ -7,9 +7,9 @@
     <!-- 商品信息 -->
     <div class="card" >
       <van-card
-      num="2"
-      price="899.00"
-      title="【12期免息/送无线蓝牙耳机】华为 Mate20全网通版双4g手机"
+      :num="CreateCommonOrder.selectedNum"
+      :price="CreateCommonOrder.selectedSkuComb.price"
+      :title="SplitOrder.nameFull"
       thumb="https://img.yzcdn.cn/vant/t-thirt.jpg"/>
     </div>
     <!-- 地址 -->
@@ -27,7 +27,7 @@
       <div class="invoice-card">
         <span>发票信息</span>
         <span>如需买发票，请与商户沟通</span>
-        <van-icon class="invoice-icon" name="arrow" slot="right" color="#666666" />
+        <!-- <van-icon class="invoice-icon" name="arrow" slot="right" color="#666666" /> -->
       </div>
       <div class="remarks-card">
         <van-cell-group>
@@ -56,7 +56,7 @@
       <div class="sumOfManey">
         <div class="price">
           <span class="dataIntegral">商品金额</span>
-          <span>￥854元</span>
+          <span>￥{{CreateCommonOrder.selectedSkuComb.price}}元</span>
         </div>
         <div class="tip">
           <span class="dataIntegral">运费</span>
@@ -80,7 +80,6 @@
     >
       <van-address-edit
       :detail-maxlength=200
-      :area-list="areaList"
       @save="onSave"
       @delete="onDelete"
       show-delete
@@ -91,7 +90,12 @@
 </template>
 
 <script>
-import areaList from '@/components/area.js'
+import {
+  // GetSubOrdersShippingAreas,
+  GetAnyProfilesAddress
+  // GetSplitOrder,
+  // GetCreateCommonOrder
+} from '@/api/detail.js'
 // import hybridApp from '@/api/hybrid_app.js'
 export default {
   name: 'orderSure',
@@ -113,10 +117,18 @@ export default {
       },
       address: false,
       checked: false,
+      areaList,
       message: '',
       price: 0,
-      areaList
+      SplitOrder: this.$route.params.SplitOrder,
+      CreateCommonOrder: this.$route.params.CreateCommonOrder,
+      allCretatedOrderData: {},
+      allGetSplitOrderData: {}
     }
+  },
+  created () {
+    this.getUserAddRess()
+    this.handleAllOrderData()
   },
   methods: {
     handleAddList (address) {
@@ -147,6 +159,25 @@ export default {
       this.userAddRess.site = ''
       this.address = !this.address
       this.$toast.fail('删除成功')
+    },
+    handleAllOrderData () {
+      // 店铺ID
+      this.allCretatedOrderData.accountMemberId = this.CreateCommonOrder.accountMemberId
+      // 规格名称
+      this.allCretatedOrderData.pCollection = this.CreateCommonOrder.selectedSkuComb.pCollection ? this.CreateCommonOrder.selectedSkuComb.pCollection : ''
+      // 规格组合ID
+      this.allCretatedOrderData.pCollectionId = this.CreateCommonOrder.selectedSkuComb.pCollectionId ? this.CreateCommonOrder.selectedSkuComb.pCollectionId : ''
+      // 数量
+      this.allCretatedOrderData.selectedNum = this.CreateCommonOrder.selectedSkuComb
+      // 商品ID
+      this.allCretatedOrderData.goodsId = this.CreateCommonOrder.goodsId
+      this.allGetSplitOrderData.accountMemberId = this.SplitOrder.accountMemberId
+    },
+    async getUserAddRess () {
+      const data = await GetAnyProfilesAddress()
+      console.log(data)
+      let date = new Date()
+      console.log(this.$dayjs(date))
     }
   }
 }
@@ -183,9 +214,13 @@ export default {
   font-size: 30px;
 }
 .van-card__price {
-  padding-top: 26px;
+  position: absolute;
+  top: 26px;
   color: #E42F46;
   font-size: 30px;
+}
+.van-card__bottom {
+  position: relative;
 }
 .addList {
   width: 100%;

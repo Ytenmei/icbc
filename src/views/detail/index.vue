@@ -1,9 +1,9 @@
 <template>
-  <div class="detail">
+  <div class="detail" v-show="detailDate">
     <div class="narBar">
       <van-row>
         <van-col span="4">
-          <van-icon color="#e43047" name="arrow-left" @click="$router.back()" />
+          <van-icon color="#e43047" name="arrow-left" @click="$router.go(-1)" />
         </van-col>
         <van-col span="14" offset="1">
           <van-tabs tpe="card" v-model="active">
@@ -48,12 +48,12 @@
             <van-icon class="shop-o" name="shop-o" />
             <div class="shop">店铺</div>
           </div>
-          <button @click="onBuyClicked" class="buy">立即购买</button>
+          <button @click="handleShowSku()" class="buy">立即购买</button>
         </div>
       </template>
     </div>
     <template v-if="active === 1" >
-      <div v-html="this.photoDetail.detail"></div>
+      <div class="showShoPDetail detail" v-html="this.photoDetail.detail"></div>
     </template>
     <!-- sku -->
     <!-- <van-popup
@@ -122,15 +122,18 @@ export default {
   name: 'detail',
   data () {
     return {
-      GetAttrs: '',
       id: this.$route.params.id,
-      phone: 15901508754,
+      GetAttrs: '',
       MobileProductByIdOpen: '',
-      active: 0, // tabs
-      show: false, // isSku
       photoDetail: '',
       priceAttrs: [],
-      none_sku: false
+      active: 0, // tabs
+      phone: 15901508754,
+      show: false, // isSku
+      none_sku: false,
+      detailDate: false,
+      quantity: [],
+      allStock: 0
     }
   },
   computed: {
@@ -160,11 +163,12 @@ export default {
             s2: r.priceValId.split('-')[1] ? r.priceValId.split('-')[1] : '0',
             s3: r.priceValId.split('-')[2] ? r.priceValId.split('-')[2] : '0',
             stock_num: r.quantity,
-            pCollection: r.priceValId
+            pCollection: r.priceValName.split('|')[1],
+            pCollectionId: r.priceValId
           }
         }),
         price: '1.00', // 默认价格（单位元）
-        stock_num: 300, // 商品总库存
+        stock_num: this.allStock, // 商品总库存
         // collection_id: 2261, // 无规格商品 skuId 取 collection_id，否则取所选 sku 组合对应的 id
         none_sku: this.none_sku, // 是否无规格商品
         hide_stock: false // 是否隐藏剩余库存
@@ -182,16 +186,24 @@ export default {
   created () {
     this.handleShowProductDesc()
     this.handleShowProductAttrs()
+    this.handleMobileProductByIdOpen()
   },
   methods: {
     // 购买
     onBuyClicked (item) {
-      this.show = true
-      console.log(item)
+      item.accountMemberId = this.MobileProductByIdOpen.accountMemberId
+      this.$router.push({
+        name: 'orderSure',
+        params: {
+          CreateCommonOrder: item,
+          SplitOrder: this.MobileProductByIdOpen
+        }
+      })
     },
     async handleMobileProductByIdOpen () {
       const data = await MobileProductByIdOpen(this.id)
-      console.log(data)
+      // console.log(data)
+      this.MobileProductByIdOpen = data
     },
     handleShowSku (show) {
       this.show = !show
@@ -201,27 +213,29 @@ export default {
     },
     // 商品图文信息
     async handleShowProductDesc () {
-      const data = await ProductDescProductId(1029221)
+      const data = await ProductDescProductId(1029221) // this.id
       this.photoDetail = data
     },
     // sku规格
     async handleShowProductAttrs () {
-      const { priceAttrBaseDictionary, priceAttrs } = await GetMoblieProductAttrs(1)
+      const { priceAttrBaseDictionary, priceAttrs, stocks } = await GetMoblieProductAttrs(2085361) // this.id
       this.GetAttrs = priceAttrBaseDictionary
+      this.allStock = stocks
+      this.detailDate = true
       if (priceAttrs.length) {
         this.none_sku = false
         this.priceAttrs = priceAttrs
       }
-    },
-    handletoOrderSure () {
-      if (this.sku.none_sku) {
-        this.$router.push({
-          name: 'orderSure',
-          params: { shopId: this.id }
-        })
-      }
-      this.show = true
     }
+    // handletoOrderSure () {
+    //   if (this.sku.none_sku) {
+    //     this.$router.push({
+    //       name: 'orderSure',
+    //       params: { shopId: this.id }
+    //     })
+    //   }
+    //   this.show = true
+    // }
   }
 }
 </script>
@@ -419,5 +433,9 @@ img {
       }
     }
   }
+}
+.showShoPDetail {
+  // position: static;
+  background-color: #fff;
 }
 </style>

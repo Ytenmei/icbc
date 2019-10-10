@@ -46,22 +46,29 @@ export const GetMoblieProductAttrs = id => {
 }
 
 // 创建订单
-export const GetCreateCommonOrder = () => {
+export const GetCreateCommonOrder = ({
+  accountMemberId,
+  pCollection,
+  pCollectionId,
+  selectedNum,
+  goodsId,
+  note = ''
+}) => {
   return request({
     method: 'POST',
     url: '/api/Icbc/CreateCommonOrder',
     data: {
       addId: 975, // 地址ID
       cosList: [{
-        accountId: 100000000688, // 店铺ID
+        accountId: accountMemberId, // 店铺ID
         copmList: [{
-          pCollection: '', // 商品
-          pCollectionId: '', // 商品属性ID
-          pCount: 1, // 个数
-          pId: 1079036 // 商品ID
+          pCollection, // 商品
+          pCollectionId, // 商品属性ID
+          pCount: selectedNum, // 个数
+          pId: goodsId // 商品ID
         }],
         invTitle: '', // 发票
-        note: '', // 下单备注
+        note, // 下单备注
         orderType: 1 // 订单类型
       }],
       couponId: '', // 优惠券ID
@@ -73,7 +80,7 @@ export const GetCreateCommonOrder = () => {
 
 // 运费
 export const GetSplitOrder = ({
-  areaId, // addressId
+  areaId = 0, // addressId
   accountMemberId, // shopId
   sAddTime, // now time
   priceValName, // goodsAttribute
@@ -125,12 +132,28 @@ export const GetSplitOrder = ({
 }
 
 // 地址列表
-export const GetAnyProfilesAddress = userId => {
+export const GetAnyProfilesAddress = () => {
   return request({
     method: 'POST',
     url: '/api/Icbc/GetAnyProfilesAddress',
     data: {
-      aProfileAccountId: userId
+      aProfileAccountId: 100000050571
+    }
+  })
+}
+
+export const GetSubOrdersShippingAreas = ({
+  subLenvel,
+  areaLevel,
+  parentId
+}) => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/GetSubOrdersShippingAreas',
+    data: {
+      subLenvel,
+      areaLevel,
+      parentId
     }
   })
 }
