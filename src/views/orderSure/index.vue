@@ -14,7 +14,7 @@
     </div>
     <!-- 地址 -->
     <div class="addList" @click="handleAddList(address)">
-      <div class="user" v-if="userAddRess.name.length">
+      <div class="user" v-if="userAddRess.name.length && userAddRess.phone.length && userAddRess.site.length ">
         <span>{{userAddRess.name}}</span>
         <span>{{userAddRess.phone}}</span>
         <span class="homeList">{{userAddRess.site}}</span>
@@ -32,13 +32,12 @@
       <div class="remarks-card">
         <van-cell-group>
           <van-field
-            v-model="message"
-            label="买家留言"
-            type="textarea"
-            placeholder="限200字"
-            rows="1"
-            autosize
-          />
+          v-model="message"
+          label="买家留言"
+          placeholder="限200字"
+          rows="1"
+          maxlength="200"
+        />
         </van-cell-group>
       </div>
       <!-- <div class="Yufu-integral">
@@ -70,60 +69,120 @@
       :price="3050"
       label="实付款"
       button-text="提交订单"
-      @submit="onSubmit"/>
+      @submit="onSubmit(addressInfo)"/>
     </template>
     <!-- 地址 -->
     <van-popup
-    v-model="address"
-    position="top"
-    :style="{ height: '50%' }"
+      v-model="address"
+      position="top"
+      :style="{ height: '60%' }"
     >
-      <van-address-edit
-      :detail-maxlength=200
-      @save="onSave"
-      @delete="onDelete"
-      show-delete
-      show-postal
-      />
+      <van-cell-group>
+        <van-field
+          v-model="addressInfo.name"
+          label="姓名"
+          placeholder="请输入姓名"
+          maxlength="20"
+        />
+        <van-field
+          v-model="addressInfo.tel"
+          label="手机号"
+          placeholder="请输入手机号"
+          type="number"
+          maxlength="11"
+        />
+        <van-field
+          v-model="addressInfo.city"
+          disabled
+          clearable
+          label="地区"
+          placeholder="选择省/市/区"
+          @click="handleisShowArea"
+          :value="this.userAddRess.site"
+        />
+        <van-field
+          v-model="addressInfo.addressDetail"
+          label="详细地址"
+          type="textarea"
+          placeholder="街道门牌，楼层房间号等信息"
+          rows="1"
+          autosize
+          maxlength="200"
+        />
+      </van-cell-group>
+      <van-popup
+        v-model="area"
+        position="bottom"
+        :style="{ height: '30%' }">
+        <van-nav-bar
+          left-text="返回"
+          right-text="确认"
+          @click-left="onClickLeft"
+          @click-right="onClickRight"
+        />
+        <picker ref="picker3" :data="list3" :columns="3" :value.sync="value3"></picker>
+      </van-popup>
+      <div class="buttonAttr">
+        <van-button type="danger" @click="handleOnSave(addressInfo)"  size="large">保存</van-button>
+      </div>
+      <div class="buttonAttr">
+        <van-button
+        :disabled="this.addressInfo.name.length
+        || this.addressInfo.tel.length
+        || this.addressInfo.addressDetail.length
+        || this.addressInfo.city.length ? false : true"
+        type="default"
+        @click="onDelete"
+        size="large">删除</van-button>
+      </div>
     </van-popup>
   </div>
 </template>
 
 <script>
+import { isMobileNumber } from '@/components/addRess.js'
+import list3 from '@/assets/area.js'
 import {
-  // GetSubOrdersShippingAreas,
+//   // GetSubOrdersShippingAreas,
   GetAnyProfilesAddress
-  // GetSplitOrder,
+//   GetSplitOrder,
   // GetCreateCommonOrder
 } from '@/api/detail.js'
 // import hybridApp from '@/api/hybrid_app.js'
+import { Picker } from 'vux'
+
 export default {
   name: 'orderSure',
+  components: {
+    Picker
+  },
   data () {
     return {
+      // 收货地址信息
       userAddRess: {
         name: '',
         phone: '',
         site: ''
       },
+      // 填写信息
       addressInfo: {
         name: '', // 名字
         tel: '', // 手机
-        province: '', // 城市
         city: '', // 城市
-        county: '', // 城市
-        addressDetail: '', // 详细地址
-        areaCode: '' // 邮政
+        addressDetail: '' // 详细地址
       },
       address: false,
       checked: false,
-      areaList,
       message: '',
       price: 0,
       SplitOrder: this.$route.params.SplitOrder,
       CreateCommonOrder: this.$route.params.CreateCommonOrder,
       allCretatedOrderData: {},
-      allGetSplitOrderData: {}
+      allGetSplitOrderData: {},
+      value3: [],
+      list3,
+      area: false,
+      areaValue: ''
     }
   },
   created () {
@@ -134,31 +193,57 @@ export default {
     handleAddList (address) {
       this.address = !address
     },
-    onSubmit () {
+    onSubmit (content) {
+      const name = this.userAddRess.name
+      const phone = this.userAddRess.phone
+      const site = this.userAddRess.site
+      if (!name || !phone || !site) {
+        this.$toast.fail('请填写收货地址')
+        return
+      }
       this.$router.push({
         name: 'finishPay',
         query: {}
       })
     },
-    onSave (content) {
+    handleOnSave (content) {
+      if (!content.name.length) {
+        this.$toast('请填写姓名')
+        return
+      } else if (!isMobileNumber(content.tel)) {
+        this.$toast('请填写正确的手机号')
+        return
+      } else if (!content.city.length) {
+        this.$toast('请选择地区')
+        return
+      } else if (!content.addressDetail.length) {
+        this.$toast('请填写地址信息')
+        return
+      }
       this.userAddRess.name = content.name
       this.userAddRess.phone = content.tel.substr(0, 3) + '****' + content.tel.substr(7)
-      this.userAddRess.site = content.addressDetail
-      this.addressInfo.name = content.name
-      this.addressInfo.province = content.province
-      this.addressInfo.city = content.city
-      this.addressInfo.county = content.county
-      this.addressInfo.addressDetail = content.addressDetail
-      this.addressInfo.areaCode = content.areaCode
-      this.address = !this.address
+      this.userAddRess.site = content.city + content.addressDetail
+      window.localStorage.setItem('addressInfo', JSON.stringify(content))
       this.$toast.success('保存成功')
+      this.address = false
     },
     onDelete () {
-      this.userAddRess.name = ''
-      this.userAddRess.phone = ''
-      this.userAddRess.site = ''
-      this.address = !this.address
-      this.$toast.fail('删除成功')
+      this.$dialog.confirm({
+        message: '确认删除吗？'
+      }).then(() => {
+        this.userAddRess.name = ''
+        this.userAddRess.phone = ''
+        this.userAddRess.site = ''
+        this.addressInfo.name = ''
+        this.addressInfo.tel = ''
+        this.addressInfo.city = ''
+        this.addressInfo.addressDetail = ''
+        this.address = !this.address
+        this.$toast.fail('删除成功')
+        // on confirm
+      }).catch(() => {
+        // on cancel
+      })
     },
     handleAllOrderData () {
       // 店铺ID
@@ -171,13 +256,42 @@ export default {
       this.allCretatedOrderData.selectedNum = this.CreateCommonOrder.selectedSkuComb
       // 商品ID
       this.allCretatedOrderData.goodsId = this.CreateCommonOrder.goodsId
-      this.allGetSplitOrderData.accountMemberId = this.SplitOrder.accountMemberId
+      // this.allGetSplitOrderData.accountMemberId = this.SplitOrder.accountMemberId
+      // this.allGetSplitOrderData.priceValName = this.CreateCommonOrder.selectedSkuComb.pCollection ? this.CreateCommonOrder.selectedSkuComb.pCollection : ''
+      // this.allGetSplitOrderData.priceValId = this.CreateCommonOrder.selectedSkuComb.pCollectionId ? this.CreateCommonOrder.selectedSkuComb.pCollectionId : ''
+      // this.allGetSplitOrderData.height = this.SplitOrder.height
+      // this.allGetSplitOrderData.length = this.SplitOrder.length
+      // this.allGetSplitOrderData.id = this.SplitOrder.id
+      // this.allGetSplitOrderData.pictureDefault = this.SplitOrder.pictureDefault
+      // this.allGetSplitOrderData.nameFull = this.SplitOrder.nameFull
+      // this.allGetSplitOrderData.count = this.SplitOrder.nameFull
     },
     async getUserAddRess () {
-      const data = await GetAnyProfilesAddress()
-      console.log(data)
-      let date = new Date()
-      console.log(this.$dayjs(date))
+      const {
+        aRealName,
+        aMobilePhone,
+        aProvinceName,
+        aCityName,
+        aCountyName,
+        aAddress } = await GetAnyProfilesAddress(100000050571)
+      this.userAddRess.name = aRealName
+      this.userAddRess.phone = aMobilePhone
+      this.userAddRess.site = aProvinceName + aCityName + aCountyName
+      this.addressInfo.name = aRealName
+      this.addressInfo.tel = aMobilePhone
+      this.addressInfo.city = aProvinceName + aCityName + aCountyName
+      this.addressInfo.addressDetail = aAddress
+    },
+    handleisShowArea () {
+      this.area = true
+    },
+    onClickLeft () {
+      this.area = false
+    },
+    onClickRight () {
+      const selectedValue = this.$refs.picker3.getNameValues()
+      this.addressInfo.city = selectedValue
+      this.area = false
     }
   }
 }
@@ -350,5 +464,13 @@ export default {
   left: 250px;
   color: #666;
   font-size: 28px;
+}
+.vux-picker {
+  margin: auto;
+}
+.buttonAttr {
+  width: 95%;
+  margin: auto;
+  margin-top: 30px;
 }
 </style>

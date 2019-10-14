@@ -6,13 +6,11 @@ import Vant, { Lazyload } from 'vant'
 import 'vant/lib/index.css'
 import 'amfe-flexible/index.js'
 import './assets/font/iconfont.js'
-import VDistpicker from 'v-distpicker'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
-Vue.component('v-distpicker', VDistpicker)
 Vue.use(Vant)
 Vue.use(Lazyload)
 Vue.config.productionTip = false
