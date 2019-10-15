@@ -72,7 +72,7 @@ export const GetCreateCommonOrder = ({
         note, // 下单备注
         orderType: 1 // 订单类型
       }],
-      couponId: '', // 优惠券ID
+      couponId: 0, // 优惠券ID
       sourceId: 3, // 来源
       userId: 100000050571 // 用户ID
     }
@@ -142,18 +142,56 @@ export const GetAnyProfilesAddress = aProfileAccountId => {
     }
   })
 }
-// export const GetSubOrdersShippingAreas = ({
-//   subLenvel,
-//   areaLevel,
-//   parentId
-// }) => {
-//   return request({
-//     method: 'POST',
-//     url: '/api/Icbc/GetSubOrdersShippingAreas',
-//     data: {
-//       subLenvel,
-//       areaLevel,
-//       parentId
-//     }
-//   })
-// }
+// 获取用户地址列表
+export const GetSubOrdersShippingAreas = ({
+  areaLevel,
+  parentId
+}) => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/GetSubOrdersShippingAreas',
+    data: {
+      subLenvel: false,
+      areaLevel,
+      parentId
+    }
+  })
+}
+// 地址保存
+export const CreateProfilesAddress = ({
+  aAddTime,
+  aAddress,
+  aCityId,
+  aCityName,
+  aCountyId,
+  aCountyName,
+  aMobilePhone,
+  aProfileAccountId = 100000050571,
+  aProvinceId,
+  aProvinceName,
+  aRealName,
+  aUpdateTime
+}) => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/CreateProfilesAddress',
+    data: {
+      aAddTime, // 添加时间
+      aAddress, // 详细地址
+      aBestTimeId: '0',
+      aCityId, // 市ID
+      aCityName, // 市
+      aConstruction: '',
+      aCountyId, // 县ID
+      aCountyName, // 县名
+      aId: '0',
+      aIsDefault: 'true',
+      aMobilePhone, // 手机号
+      aProfileAccountId, // 用户Id
+      aProvinceId, // 省ID
+      aProvinceName,
+      aRealName,
+      aUpdateTime
+    }
+  })
+}

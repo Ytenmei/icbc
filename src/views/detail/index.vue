@@ -118,6 +118,7 @@ import {
   ProductDescProductId,
   GetMoblieProductAttrs
 } from '@/api/detail.js'
+import hybridApp from '@/api/hybrid_app.js'
 export default {
   name: 'detail',
   data () {
@@ -128,7 +129,7 @@ export default {
       photoDetail: '',
       priceAttrs: [],
       active: 0, // tabs
-      phone: 15901508754,
+      phone: 65816391,
       show: false, // isSku
       none_sku: false,
       detailDate: false,
@@ -209,7 +210,8 @@ export default {
       this.show = !show
     },
     handleShowPhone () {
-      window.location.href = 'tel://' + this.phone
+      // window.location.href = 'tel://' + this.phone
+      hybridApp.callPhoneNumber(this.phone)
     },
     // 商品图文信息
     async handleShowProductDesc () {

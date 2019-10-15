@@ -55,7 +55,7 @@
       <div class="sumOfManey">
         <div class="price">
           <span class="dataIntegral">商品金额</span>
-          <span>￥{{CreateCommonOrder.selectedSkuComb.price}}元</span>
+          <span>￥{{CreateCommonOrder.selectedSkuComb.price * CreateCommonOrder.selectedNum}}元</span>
         </div>
         <div class="tip">
           <span class="dataIntegral">运费</span>
@@ -66,7 +66,7 @@
     <!--  -->
     <template>
       <van-submit-bar
-      :price="3050"
+      :price="CreateCommonOrder.selectedSkuComb.price * 100 * CreateCommonOrder.selectedNum"
       label="实付款"
       button-text="提交订单"
       @submit="onSubmit(addressInfo)"/>
@@ -74,8 +74,9 @@
     <!-- 地址 -->
     <van-popup
       v-model="address"
+      :close-on-click-overlay="false"
       position="top"
-      :style="{ height: '60%' }"
+      :style="{ height: '45%' }"
     >
       <van-cell-group>
         <van-field
@@ -111,6 +112,7 @@
         />
       </van-cell-group>
       <van-popup
+        :close-on-click-overlay="false"
         v-model="area"
         position="bottom"
         :style="{ height: '30%' }">
@@ -143,10 +145,9 @@
 import { isMobileNumber } from '@/components/addRess.js'
 import list3 from '@/assets/area.js'
 import {
-//   // GetSubOrdersShippingAreas,
-  GetAnyProfilesAddress
-//   GetSplitOrder,
-  // GetCreateCommonOrder
+  GetAnyProfilesAddress,
+  GetCreateCommonOrder,
+  CreateProfilesAddress
 } from '@/api/detail.js'
 // import hybridApp from '@/api/hybrid_app.js'
 import { Picker } from 'vux'
@@ -173,12 +174,12 @@ export default {
       },
       address: false,
       checked: false,
-      message: '',
+      message: '', // 买家留言
       price: 0,
-      SplitOrder: this.$route.params.SplitOrder,
-      CreateCommonOrder: this.$route.params.CreateCommonOrder,
-      allCretatedOrderData: {},
-      allGetSplitOrderData: {},
+      SplitOrder: this.$route.params.SplitOrder, // 跳转来的数据运费数据
+      CreateCommonOrder: this.$route.params.CreateCommonOrder, // 跳转来的创建订单数据
+      allCretatedOrderData: {}, // 创建订单接口数据
+      allGetSplitOrderData: {}, // 调用运费接口数据
       value3: [],
       list3,
       area: false,
@@ -193,7 +194,7 @@ export default {
     handleAddList (address) {
       this.address = !address
     },
-    onSubmit (content) {
+    async onSubmit (content) {
       const name = this.userAddRess.name
       const phone = this.userAddRess.phone
       const site = this.userAddRess.site
@@ -201,12 +202,23 @@ export default {
         this.$toast.fail('请填写收货地址')
         return
       }
-      this.$router.push({
-        name: 'finishPay',
-        query: {}
+      const allCretatedOrderData = this.allCretatedOrderData
+      const data = await GetCreateCommonOrder({
+        aId: allCretatedOrderData.aId,
+        accountMemberId: allCretatedOrderData.accountMemberId,
+        pCollection: allCretatedOrderData.pCollection,
+        pCollectionId: allCretatedOrderData.pCollectionId,
+        selectedNum: this.CreateCommonOrder.selectedNum,
+        goodsId: allCretatedOrderData.goodsId,
+        note: this.message
       })
+      console.log(data)
+      // this.$router.push({
+      //   name: 'finishPay',
+      //   query: {}
+      // })
     },
-    handleOnSave (content) {
+    async handleOnSave (content) {
       if (!content.name.length) {
         this.$toast('请填写姓名')
         return
@@ -220,10 +232,26 @@ export default {
         this.$toast('请填写地址信息')
         return
       }
+      const data = await CreateProfilesAddress({
+        aAddTime: this.$dayjs(new Date()),
+        aAddress: content.addressDetail,
+        aCityId: this.value3[1].split('|')[0],
+        aCityName: content.city.split(' ')[1],
+        aCountyId: this.value3[2].split('|')[0],
+        aCountyName: content.city.split(' ')[2],
+        aMobilePhone: content.tel,
+        // aProfileAccountId,
+        aProvinceId: this.value3[0].split('|')[0],
+        aProvinceName: content.city.split(' ')[0],
+        aRealName: content.name,
+        aUpdateTime: this.$dayjs(new Date())
+      })
+      window.localStorage.setItem('userArea', JSON.stringify(this.value3))
+      this.allCretatedOrderData.aId = data
       this.userAddRess.name = content.name
       this.userAddRess.phone = content.tel.substr(0, 3) + '****' + content.tel.substr(7)
       this.userAddRess.site = content.city + content.addressDetail
-      window.localStorage.setItem('addressInfo', JSON.stringify(content))
+      // window.localStorage.setItem('addressInfo', JSON.stringify(content))
       this.$toast.success('保存成功')
       this.address = false
     },
@@ -267,20 +295,36 @@ export default {
       // this.allGetSplitOrderData.count = this.SplitOrder.nameFull
     },
     async getUserAddRess () {
-      const {
-        aRealName,
-        aMobilePhone,
-        aProvinceName,
-        aCityName,
-        aCountyName,
-        aAddress } = await GetAnyProfilesAddress(100000050571)
-      this.userAddRess.name = aRealName
-      this.userAddRess.phone = aMobilePhone
-      this.userAddRess.site = aProvinceName + aCityName + aCountyName
-      this.addressInfo.name = aRealName
-      this.addressInfo.tel = aMobilePhone
-      this.addressInfo.city = aProvinceName + aCityName + aCountyName
-      this.addressInfo.addressDetail = aAddress
+      const data = await GetAnyProfilesAddress(100000050571)
+      if (!data.length) {
+        return
+      }
+      const areaData2 = data.filter(item => item.aIsDefault)
+      if (areaData2.length) {
+        const areaData = areaData2[0]
+        const userArea = JSON.parse(window.localStorage.getItem('userArea'))
+        console.log(userArea)
+        this.userAddRess.name = areaData.aRealName
+        this.userAddRess.phone = areaData.aMobilePhone
+        this.userAddRess.site = areaData.aProvinceName + ' ' + areaData.aCityName + '' + areaData.aCountyName + ' ' + areaData.aAddress
+        this.addressInfo.name = areaData.aRealName
+        this.addressInfo.tel = areaData.aMobilePhone
+        this.addressInfo.city = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName
+        this.addressInfo.addressDetail = areaData.aAddress
+        this.allCretatedOrderData.aId = areaData.aId
+      } else {
+        const areaData1 = areaData2[0]
+        const userArea = JSON.parse(window.localStorage.getItem('userArea'))
+        console.log(userArea)
+        this.userAddRess.name = areaData1.aRealName
+        this.userAddRess.phone = areaData1.aMobilePhone
+        this.userAddRess.site = areaData1.aProvinceName + ' ' + areaData1.aCityName + '' + areaData1.aCountyName + ' ' + areaData1.aAddress
+        this.addressInfo.name = areaData1.aRealName
+        this.addressInfo.tel = areaData1.aMobilePhone
+        this.addressInfo.city = areaData1.aProvinceName + ' ' + areaData1.aCityName + ' ' + areaData1.aCountyName
+        this.addressInfo.addressDetail = areaData1.aAddress
+        this.allCretatedOrderData.aId = areaData1.aId
+      }
     },
     handleisShowArea () {
       this.area = true
@@ -289,7 +333,8 @@ export default {
       this.area = false
     },
     onClickRight () {
-      const selectedValue = this.$refs.picker3.getNameValues()
+      let selectedValue = this.$refs.picker3.getNameValues()
+      this.userAddRess.site = selectedValue
       this.addressInfo.city = selectedValue
       this.area = false
     }
