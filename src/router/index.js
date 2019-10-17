@@ -37,6 +37,22 @@ export default new Router({
       meta: {
         keepAlive: false // 需要被缓存
       }
+    },
+    {
+      name: 'orderDatil',
+      path: '/orderDatil',
+      component: () => import('@/views/orderDatil'),
+      meta: {
+        keepAlive: false // 需要被缓存
+      }
+    },
+    {
+      name: 'orderList',
+      path: '/orderList',
+      component: () => import('@/views/orderList'),
+      meta: {
+        keepAlive: false // 需要被缓存
+      }
     }
   ]
 })

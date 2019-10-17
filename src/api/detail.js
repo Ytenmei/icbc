@@ -195,3 +195,31 @@ export const CreateProfilesAddress = ({
     }
   })
 }
+// 获取订单详情
+export const GetOrderById = orderId => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/GetOrderById',
+    data: {
+      orderId
+    }
+  })
+}
+// 获取订单列表
+export const GetOrderByPage = ({
+  pageIndex,
+  pageSize,
+  userId,
+  status
+}) => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/GetOrderByPage',
+    data: {
+      pageIndex,
+      pageSize,
+      userId,
+      status
+    }
+  })
+}

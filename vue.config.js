@@ -11,6 +11,14 @@ module.exports = {
   },
   publicPath: process.env.NODE_ENV === 'production' ? './' : '/',
   assetsDir: 'assets'
+  // configureWebpack: config => {
+  //   require('@vux/loader').merge(config, {
+  //     plugins: ['vux-ui', {
+  //       name: 'less-theme',
+  //       path: 'src/theme.less'
+  //     }]
+  //   })
+  // }
   // outputDir: "ICBC"
 
   // productionSourceMap: false

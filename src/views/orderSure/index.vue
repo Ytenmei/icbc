@@ -187,13 +187,14 @@ export default {
     }
   },
   created () {
-    this.getUserAddRess()
+    // this.getUserAddRess()
     this.handleAllOrderData()
   },
   methods: {
     handleAddList (address) {
       this.address = !address
     },
+    // 下单
     async onSubmit (content) {
       const name = this.userAddRess.name
       const phone = this.userAddRess.phone
@@ -218,6 +219,7 @@ export default {
       //   query: {}
       // })
     },
+    // 保存地址
     async handleOnSave (content) {
       if (!content.name.length) {
         this.$toast('请填写姓名')
@@ -255,6 +257,7 @@ export default {
       this.$toast.success('保存成功')
       this.address = false
     },
+    // 删除地址信息
     onDelete () {
       this.$dialog.confirm({
         message: '确认删除吗？'
@@ -266,6 +269,7 @@ export default {
         this.addressInfo.tel = ''
         this.addressInfo.city = ''
         this.addressInfo.addressDetail = ''
+        this.value3 = []
         this.address = !this.address
         this.$toast.fail('删除成功')
         // on confirm
@@ -300,36 +304,48 @@ export default {
         return
       }
       const areaData2 = data.filter(item => item.aIsDefault)
+      // 有默认地址
+      const areaData = areaData2[0]
       if (areaData2.length) {
-        const areaData = areaData2[0]
-        const userArea = JSON.parse(window.localStorage.getItem('userArea'))
-        console.log(userArea)
         this.userAddRess.name = areaData.aRealName
         this.userAddRess.phone = areaData.aMobilePhone
-        this.userAddRess.site = areaData.aProvinceName + ' ' + areaData.aCityName + '' + areaData.aCountyName + ' ' + areaData.aAddress
+        this.userAddRess.site = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName + ' ' + areaData.aAddress
         this.addressInfo.name = areaData.aRealName
         this.addressInfo.tel = areaData.aMobilePhone
         this.addressInfo.city = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName
         this.addressInfo.addressDetail = areaData.aAddress
         this.allCretatedOrderData.aId = areaData.aId
+      } else { // 有地址，无默认地址，
+        this.userAddRess.name = areaData.aRealName
+        this.userAddRess.phone = areaData.aMobilePhone
+        this.userAddRess.site = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName + ' ' + areaData.aAddress
+        this.addressInfo.name = areaData.aRealName
+        this.addressInfo.tel = areaData.aMobilePhone
+        this.addressInfo.city = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName
+        this.addressInfo.addressDetail = areaData.aAddress
+        this.allCretatedOrderData.aId = areaData.aId
+      }
+      const userArea = JSON.parse(window.localStorage.getItem('userArea'))
+      const aProvinceId = areaData.aProvinceId
+      const aCityId = areaData.aCityId
+      const aCountyId = areaData.aCountyId
+      // 没有
+      if (userArea) {
+        this.value3.push(aProvinceId + '|1')
+        this.value3.push(aCityId + '|2')
+        this.value3.push(aCountyId + '|3')
       } else {
-        const areaData1 = areaData2[0]
-        const userArea = JSON.parse(window.localStorage.getItem('userArea'))
-        console.log(userArea)
-        this.userAddRess.name = areaData1.aRealName
-        this.userAddRess.phone = areaData1.aMobilePhone
-        this.userAddRess.site = areaData1.aProvinceName + ' ' + areaData1.aCityName + '' + areaData1.aCountyName + ' ' + areaData1.aAddress
-        this.addressInfo.name = areaData1.aRealName
-        this.addressInfo.tel = areaData1.aMobilePhone
-        this.addressInfo.city = areaData1.aProvinceName + ' ' + areaData1.aCityName + ' ' + areaData1.aCountyName
-        this.addressInfo.addressDetail = areaData1.aAddress
-        this.allCretatedOrderData.aId = areaData1.aId
+        this.value3 = userArea
       }
     },
     handleisShowArea () {
       this.area = true
     },
     onClickLeft () {
+      const userArea = JSON.parse(window.localStorage.getItem('userArea'))
+      if (!userArea) {
+        this.value3 = userArea
+      }
       this.area = false
     },
     onClickRight () {

@@ -81,15 +81,26 @@ export default {
       await this.$sleep(1000)
       this.pageIndex += 1
       const [{ productList }] = await GetSellerProductByPage(this.pageIndex)
-      this.discount.push(...productList)
-      this.loading = false
+      if (!productList.length) {
+        this.loading = false
+        this.finished = true
+      } else {
+        this.discount.push(...productList)
+        this.loading = false
+      }
     },
     async onRefresh () {
       await this.$sleep(1000)
       this.pageIndex += 1
       const [{ productList }] = await GetSellerProductByPage(this.pageIndex)
-      this.discount = [...productList]
-      this.isLoading = false
+      if (!productList.length) {
+        this.isLoading = false
+        this.$toast('已没有更多数据')
+      } else {
+        this.discount.unshift(...productList)
+        this.isLoading = false
+        this.$toast('刷新成功')
+      }
     }
   }
 }
