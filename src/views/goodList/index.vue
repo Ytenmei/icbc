@@ -23,7 +23,7 @@
             params: {
               id: item.id
             }
-            })"
+          })"
           v-for="item in discount"
           :key="item.id"
           :price="item.salePrice"

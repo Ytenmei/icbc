@@ -223,3 +223,46 @@ export const GetOrderByPage = ({
     }
   })
 }
+// Update地址
+export const UpdateProfilesAddress = ({
+  aProvinceId,
+  aCountyId,
+  aCityId,
+  aProvinceName,
+  aUpdateTime,
+  aMobilePhone,
+  aIsDefault,
+  aAddTime,
+  aRealName,
+  aProfileAccountId = 100000050571,
+  aCountyName,
+  aAddress,
+  aCityName,
+  aId
+}) => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/UpdateProfilesAddress',
+    data: {
+      aProvinceId,
+      aCountyId,
+      aCityId,
+      aProvinceName,
+      aAddressId: '',
+      aUpdateTime,
+      aAddressType: 0,
+      aMobilePhone,
+      aIsDefault,
+      aAddTime,
+      aRealName,
+      aConstruction: '',
+      aPhone: '',
+      aProfileAccountId,
+      aCountyName,
+      aAddress,
+      aCityName,
+      aCertNo: '',
+      aId
+    }
+  })
+}

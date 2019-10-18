@@ -21,7 +21,15 @@
       @load="onLoad"
     >
       <template>
-        <div v-for="(item, index) in allOrder" :key="index" class="orderList-shop">
+        <div v-for="(item, index) in allOrder"
+        :key="index"
+        @click="$router.push({
+          path: '/orderDatil',
+          query: {
+            oId: item.oId
+          }
+        })"
+        class="orderList-shop">
           <div>
             <span>福卡商城</span>
             <span>{{ item.ordersStatus.ordersStatusName}}</span>

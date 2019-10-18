@@ -2,7 +2,7 @@
   <div class="order-datail" v-show="orderProducts.length">
     <!-- narBar -->
     <van-nav-bar fixed title="订单详情">
-      <van-icon name="arrow-left" slot="left" color="red" />
+      <van-icon name="arrow-left" slot="left" color="red" @click="$router.go(-1)" />
     </van-nav-bar>
     <div class="isPayImg">
       <img v-if="orderStatus.id === 1" :src="waitPay">
@@ -70,6 +70,7 @@ export default {
   },
   methods: {
     async GetOrderDatil () {
+      const orderId = this.$route.query.oId
       const {
         ordersAddresses,
         orderProducts,
@@ -77,7 +78,7 @@ export default {
         oTotalAmount,
         realPayment,
         ordersStatus
-      } = await GetOrderById(100000000134)
+      } = await GetOrderById(orderId)
       this.orderRess = ordersAddresses // 地址
       this.orderProducts = orderProducts // 商品
       this.postFreePrice = oPostFreePrice // 运费

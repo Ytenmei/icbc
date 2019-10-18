@@ -10,11 +10,11 @@
       :num="CreateCommonOrder.selectedNum"
       :price="CreateCommonOrder.selectedSkuComb.price"
       :title="SplitOrder.nameFull"
-      thumb="https://img.yzcdn.cn/vant/t-thirt.jpg"/>
+      :thumb="SplitOrder.pictureDefault"/>
     </div>
     <!-- 地址 -->
-    <div class="addList" @click="handleAddList(address)">
-      <div class="user" v-if="userAddRess.name.length && userAddRess.phone.length && userAddRess.site.length ">
+    <div class="addList">
+      <div @click="handleAddList(show)" class="user" v-if="userAddRess.name.length && userAddRess.phone.length && userAddRess.site.length ">
         <span>{{userAddRess.name}}</span>
         <span>{{userAddRess.phone}}</span>
         <span class="homeList">{{userAddRess.site}}</span>
@@ -40,15 +40,6 @@
         />
         </van-cell-group>
       </div>
-      <!-- <div class="Yufu-integral">
-        <span class="dataIntegral">裕福积分</span>
-        <span >共500积分，可抵扣</span>
-        <span >500.00元</span>
-        <van-switch
-        v-model="checked"
-        active-color="#ee0a24"
-        />
-      </div> -->
     </div>
     <!--  -->
     <template>
@@ -71,72 +62,105 @@
       button-text="提交订单"
       @submit="onSubmit(addressInfo)"/>
     </template>
-    <!-- 地址 -->
     <van-popup
-      v-model="address"
-      :close-on-click-overlay="false"
-      position="top"
-      :style="{ height: '45%' }"
-    >
-      <van-cell-group>
-        <van-field
-          v-model="addressInfo.name"
-          label="姓名"
-          placeholder="请输入姓名"
-          maxlength="20"
-        />
-        <van-field
-          v-model="addressInfo.tel"
-          label="手机号"
-          placeholder="请输入手机号"
-          type="number"
-          maxlength="11"
-        />
-        <van-field
-          v-model="addressInfo.city"
-          disabled
-          clearable
-          label="地区"
-          placeholder="选择省/市/区"
-          @click="handleisShowArea"
-          :value="this.userAddRess.site"
-        />
-        <van-field
-          v-model="addressInfo.addressDetail"
-          label="详细地址"
-          type="textarea"
-          placeholder="街道门牌，楼层房间号等信息"
-          rows="1"
-          autosize
-          maxlength="200"
-        />
-      </van-cell-group>
-      <van-popup
-        :close-on-click-overlay="false"
-        v-model="area"
-        position="bottom"
-        :style="{ height: '30%' }">
-        <van-nav-bar
-          left-text="返回"
-          right-text="确认"
-          @click-left="onClickLeft"
-          @click-right="onClickRight"
-        />
-        <picker ref="picker3" :data="list3" :columns="3" :value.sync="value3"></picker>
-      </van-popup>
-      <div class="buttonAttr">
-        <van-button type="danger" @click="handleOnSave(addressInfo)"  size="large">保存</van-button>
+      class="addRess"
+      v-model="show"
+      position="bottom"
+      :style="{ height: '100%' }">
+      <template>
+        <van-nav-bar :border="false" fixed title="收货地址列表管理">
+          <van-icon @click="handleAddList" name="arrow-left" slot="left" color="red" />
+        </van-nav-bar>
+      </template>
+      <div class="address-list">
+        <van-panel
+          v-for="(item, index) in ressList"
+          :key="index"
+          class="address-card"
+          :title="item.aRealName"
+          :desc="item.aAddress"
+          :status="item.aMobilePhone"
+        >
+          <van-row class="address-default">
+            <van-col span="8">
+              <van-checkbox v-show="!item.aIsDefault">设为默认地址</van-checkbox>
+            </van-col>
+            <van-col @click="handleEditAddRess(item)" span="6"  offset="4">
+              <van-icon name="delete" />
+              <span>编辑</span>
+            </van-col>
+            <van-col span="6">
+              <van-icon name="records" />
+              <span>删除</span>
+            </van-col>
+          </van-row>
+        </van-panel>
       </div>
-      <div class="buttonAttr">
-        <van-button
-        :disabled="this.addressInfo.name.length
-        || this.addressInfo.tel.length
-        || this.addressInfo.addressDetail.length
-        || this.addressInfo.city.length ? false : true"
-        type="default"
-        @click="onDelete"
-        size="large">删除</van-button>
-      </div>
+      <!-- 地址编辑 -->
+        <van-popup
+          v-model="address"
+          :close-on-click-overlay="false"
+          position="bottom"
+          :style="{ height: '50%' }"
+        >
+          <van-cell-group>
+            <van-field
+              v-model="addressInfo.name"
+              label="姓名"
+              placeholder="请输入姓名"
+              maxlength="20"
+            />
+            <van-field
+              v-model="addressInfo.tel"
+              label="手机号"
+              placeholder="请输入手机号"
+              type="number"
+              maxlength="11"
+            />
+            <van-field
+              v-model="addressInfo.city"
+              disabled
+              clearable
+              label="地区"
+              placeholder="选择省/市/区"
+              @click="handleisShowArea"
+              :value="this.userAddRess.site"
+            />
+            <van-field
+              v-model="addressInfo.addressDetail"
+              label="详细地址"
+              type="textarea"
+              placeholder="街道门牌，楼层房间号等信息"
+              rows="1"
+              autosize
+              maxlength="200"
+            />
+          </van-cell-group>
+          <van-popup
+            :close-on-click-overlay="false"
+            v-model="area"
+            position="bottom"
+            :style="{ height: '30%' }">
+            <van-nav-bar
+              right-text="确认"
+              @click-right="onClickRight"
+            />
+            <picker ref="picker3" :data="list3" :columns="3" :value.sync="value3"></picker>
+          </van-popup>
+          <div class="buttonAttr">
+            <van-button type="danger" @click="handleUpdateAddress(addressInfo)"  size="large">保存</van-button>
+          </div>
+          <div class="buttonAttr">
+            <van-button
+            :disabled="this.addressInfo.name.length
+            || this.addressInfo.tel.length
+            || this.addressInfo.addressDetail.length
+            || this.addressInfo.city.length ? false : true"
+            type="default"
+            @click="onDelete"
+            size="large">删除</van-button>
+          </div>
+        </van-popup>
     </van-popup>
   </div>
 </template>
@@ -147,7 +171,8 @@ import list3 from '@/assets/area.js'
 import {
   GetAnyProfilesAddress,
   GetCreateCommonOrder,
-  CreateProfilesAddress
+  CreateProfilesAddress,
+  UpdateProfilesAddress
 } from '@/api/detail.js'
 // import hybridApp from '@/api/hybrid_app.js'
 import { Picker } from 'vux'
@@ -183,16 +208,19 @@ export default {
       value3: [],
       list3,
       area: false,
-      areaValue: ''
+      areaValue: '',
+      show: false,
+      ressList: '',
+      item: ''
     }
   },
   created () {
-    // this.getUserAddRess()
     this.handleAllOrderData()
+    this.getUserAddRess()
   },
   methods: {
-    handleAddList (address) {
-      this.address = !address
+    handleAddList (show) {
+      this.show = !show
     },
     // 下单
     async onSubmit (content) {
@@ -219,19 +247,27 @@ export default {
       //   query: {}
       // })
     },
-    // 保存地址
-    async handleOnSave (content) {
+    // 表单是否完整
+    handleisShowAddress (content) {
       if (!content.name.length) {
         this.$toast('请填写姓名')
-        return
+        return false
       } else if (!isMobileNumber(content.tel)) {
         this.$toast('请填写正确的手机号')
-        return
+        return false
       } else if (!content.city.length) {
         this.$toast('请选择地区')
-        return
+        return false
       } else if (!content.addressDetail.length) {
         this.$toast('请填写地址信息')
+        return false
+      } else {
+        return true
+      }
+    },
+    // 保存地址
+    async handleOnSave (content) {
+      if (!this.handleisShowAddress(content)) {
         return
       }
       const data = await CreateProfilesAddress({
@@ -277,6 +313,7 @@ export default {
         // on cancel
       })
     },
+    // 页面信息展示
     handleAllOrderData () {
       // 店铺ID
       this.allCretatedOrderData.accountMemberId = this.CreateCommonOrder.accountMemberId
@@ -298,15 +335,19 @@ export default {
       // this.allGetSplitOrderData.nameFull = this.SplitOrder.nameFull
       // this.allGetSplitOrderData.count = this.SplitOrder.nameFull
     },
+    // 获取地址数据
     async getUserAddRess () {
       const data = await GetAnyProfilesAddress(100000050571)
       if (!data.length) {
         return
       }
-      const areaData2 = data.filter(item => item.aIsDefault)
+      // 所有订单列表
+      this.ressList = data
+      // 默认地址
+      const areaOwnData = data.filter(item => item.aIsDefault)
       // 有默认地址
-      const areaData = areaData2[0]
-      if (areaData2.length) {
+      if (areaOwnData.length) {
+        const areaData = areaOwnData[0]
         this.userAddRess.name = areaData.aRealName
         this.userAddRess.phone = areaData.aMobilePhone
         this.userAddRess.site = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName + ' ' + areaData.aAddress
@@ -316,6 +357,7 @@ export default {
         this.addressInfo.addressDetail = areaData.aAddress
         this.allCretatedOrderData.aId = areaData.aId
       } else { // 有地址，无默认地址，
+        const areaData = this.ressList[0]
         this.userAddRess.name = areaData.aRealName
         this.userAddRess.phone = areaData.aMobilePhone
         this.userAddRess.site = areaData.aProvinceName + ' ' + areaData.aCityName + ' ' + areaData.aCountyName + ' ' + areaData.aAddress
@@ -325,34 +367,59 @@ export default {
         this.addressInfo.addressDetail = areaData.aAddress
         this.allCretatedOrderData.aId = areaData.aId
       }
-      const userArea = JSON.parse(window.localStorage.getItem('userArea'))
-      const aProvinceId = areaData.aProvinceId
-      const aCityId = areaData.aCityId
-      const aCountyId = areaData.aCountyId
-      // 没有
-      if (userArea) {
-        this.value3.push(aProvinceId + '|1')
-        this.value3.push(aCityId + '|2')
-        this.value3.push(aCountyId + '|3')
-      } else {
-        this.value3 = userArea
-      }
     },
+    // 选择省市区
     handleisShowArea () {
       this.area = true
     },
-    onClickLeft () {
-      const userArea = JSON.parse(window.localStorage.getItem('userArea'))
-      if (!userArea) {
-        this.value3 = userArea
-      }
-      this.area = false
-    },
+    // 地区确认
     onClickRight () {
       let selectedValue = this.$refs.picker3.getNameValues()
       this.userAddRess.site = selectedValue
       this.addressInfo.city = selectedValue
       this.area = false
+    },
+    // 编辑
+    async handleEditAddRess (item) {
+      this.address = true
+      this.item = item
+      this.addressInfo.name = item.aRealName
+      this.addressInfo.tel = item.aMobilePhone
+      this.addressInfo.city = item.aProvinceName + ' ' + item.aCityName + ' ' + item.aCountyName
+      this.addressInfo.addressDetail = item.aAddress
+    },
+    // 保存更新数据
+    async handleUpdateAddress (addressInfo) {
+      if (!this.handleisShowAddress(addressInfo)) {
+        return
+      }
+      const item = this.item
+      await UpdateProfilesAddress({
+        aProvinceId: this.value3[0].split('|')[0],
+        aCountyId: this.value3[1].split('|')[0],
+        aCityId: this.value3[2].split('|')[0],
+        aProvinceName: addressInfo.city.split(' ')[0],
+        aUpdateTime: this.$dayjs(new Date()),
+        aMobilePhone: addressInfo.tel,
+        aIsDefault: item.aIsDefault,
+        aAddTime: item.aAddTime,
+        aRealName: addressInfo.name,
+        aCountyName: addressInfo.city.split(' ')[2],
+        aAddress: addressInfo.addressDetail,
+        aCityName: addressInfo.city.split(' ')[1],
+        aId: item.aId
+      })
+      // item.aRealName =
+      // item.aMobilePhone =
+      // item.aProvinceName =
+      // item.aCityName =
+      // item.aAddress =
+      // item.aCountyName =
+      // item.aCountyName =
+      // item.aCountyName =
+      // item.aCountyName =
+      window.localStorage.setItem('userArea', JSON.stringify(this.value3))
+      this.address = false
     }
   }
 }
@@ -360,7 +427,7 @@ export default {
 
 <style lang="less" scoped>
 .van-icon-arrow-left {
-  font-size: 60px;
+  font-size: 45px;
 }
 .van-icon-arrow {
   font-size: 40px;
@@ -533,5 +600,62 @@ export default {
   width: 95%;
   margin: auto;
   margin-top: 30px;
+}
+.addRess {
+  width: 100%;
+  height: 100%;
+  content:"";
+  position: absolute;
+  left:0;
+  right:0;
+  top:0;
+  bottom:0;
+  z-index:-100;
+  background-color: #F5F5F5;
+  height: 100%;
+  .address-list {
+    margin-top: 95px;
+    .address-card {
+      margin-top: 10px;
+    }
+  }
+  /deep/.van-cell__label {
+    width: 150%;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+  .address-default {
+    width: 100%;
+    height: 80px;
+    font-size: 24px;
+    box-sizing: border-box;
+    padding: 20px 0 20px 30px;
+  }
+  .van-col--6 {
+    text-align: center;
+    position: relative;
+    height: 100%;
+    span {
+      font-size: 28px;
+      top: 0;
+    }
+  }
+  .van-cell__value {
+    text-align: left;
+    span {
+      color: #000;
+    }
+  }
+  /deep/.van-checkbox__icon--round {
+    font-size: 32px;
+  }
+  /deep/.van-icon-delete,.van-icon-records {
+    font-size: 32px;
+    position: absolute;
+    left: 23px;
+    bottom: 6px;
+  }
 }
 </style>

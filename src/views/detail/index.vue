@@ -285,16 +285,21 @@ img {
   width: 662px;
   height: 81px;
   font-size: 30px;
-  padding: 33px 50px 29px 38px;
+  padding: 33px 50px 0px 38px;
   color: #000;
   font-family:PingFang SC;
   font-weight: 700;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .goodDetail span {
   position: absolute;
   display: inline-block;
   color: #E42F46;
   font-size: 40px;
+  padding-top: 30px;
   padding-left: 33px;
 }
 .van-col--4,.van-col--20 {
