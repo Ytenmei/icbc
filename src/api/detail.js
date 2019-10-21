@@ -266,3 +266,14 @@ export const UpdateProfilesAddress = ({
     }
   })
 }
+
+// 地址删除
+export const DelProfilesAddress = aId => {
+  return request({
+    method: 'POST',
+    url: '/api/Icbc/DelProfilesAddress',
+    data: {
+      aId
+    }
+  })
+}

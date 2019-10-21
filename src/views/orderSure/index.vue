@@ -13,15 +13,16 @@
       :thumb="SplitOrder.pictureDefault"/>
     </div>
     <!-- 地址 -->
-    <div class="addList">
-      <div @click="handleAddList(show)" class="user" v-if="userAddRess.name.length && userAddRess.phone.length && userAddRess.site.length ">
+    <div class="addList" v-if="userAddRess.name.length && userAddRess.phone.length && userAddRess.site.length ">
+      <div @click="handleAddList(show)" class="user">
         <span>{{userAddRess.name}}</span>
         <span>{{userAddRess.phone}}</span>
         <span class="homeList">{{userAddRess.site}}</span>
       </div>
-      <div v-else class="addressList">点击添加收货地址</div>
+      <!-- <div @click="handleAddress" v-else class="addressList">点击添加收货地址</div> -->
       <van-icon name="arrow" slot="right" color="#666666" />
     </div>
+    <div @click="handleAddress()" v-else class="addressList">点击添加收货地址</div>
     <!--  -->
     <div class="invoice">
       <div class="invoice-card">
@@ -62,6 +63,7 @@
       button-text="提交订单"
       @submit="onSubmit(addressInfo)"/>
     </template>
+    <!-- 地址 -->
     <van-popup
       class="addRess"
       v-model="show"
@@ -78,24 +80,26 @@
           :key="index"
           class="address-card"
           :title="item.aRealName"
-          :desc="item.aAddress"
+          :desc="item.aProvinceName + ' ' + item.aCityName + ' '+ item.aCountyName + ' ' + item.aAddress"
           :status="item.aMobilePhone"
         >
           <van-row class="address-default">
             <van-col span="8">
-              <van-checkbox v-show="!item.aIsDefault">设为默认地址</van-checkbox>
+              <van-tag v-if="item.aIsDefault" type="warning">默认地址</van-tag>
+              <van-button @click="handledefauladdress(item)" v-else type="primary" size="mini">设为默认地址</van-button>
             </van-col>
             <van-col @click="handleEditAddRess(item)" span="6"  offset="4">
               <van-icon name="delete" />
               <span>编辑</span>
             </van-col>
-            <van-col span="6">
+            <van-col @click="handleDeleteRess(item)" span="6">
               <van-icon name="records" />
               <span>删除</span>
             </van-col>
           </van-row>
         </van-panel>
       </div>
+      <van-button @click="handleCreatedNewRess()" class="newAddress" type="danger" size="large">新建收货地址</van-button>
       <!-- 地址编辑 -->
         <van-popup
           v-model="address"
@@ -108,7 +112,7 @@
               v-model="addressInfo.name"
               label="姓名"
               placeholder="请输入姓名"
-              maxlength="20"
+              maxlength="16"
             />
             <van-field
               v-model="addressInfo.tel"
@@ -145,21 +149,21 @@
               right-text="确认"
               @click-right="onClickRight"
             />
-            <picker ref="picker3" :data="list3" :columns="3" :value.sync="value3"></picker>
+            <picker ref="picker3" @on-change="handleA" :data="list3" :columns="3" :value.sync="value3"></picker>
           </van-popup>
           <div class="buttonAttr">
             <van-button type="danger" @click="handleUpdateAddress(addressInfo)"  size="large">保存</van-button>
           </div>
-          <div class="buttonAttr">
+          <!-- <div class="buttonAttr">
             <van-button
             :disabled="this.addressInfo.name.length
             || this.addressInfo.tel.length
             || this.addressInfo.addressDetail.length
             || this.addressInfo.city.length ? false : true"
             type="default"
-            @click="onDelete"
+            @click="handleDeleteRess(this.item)"
             size="large">删除</van-button>
-          </div>
+          </div> -->
         </van-popup>
     </van-popup>
   </div>
@@ -172,6 +176,7 @@ import {
   GetAnyProfilesAddress,
   GetCreateCommonOrder,
   CreateProfilesAddress,
+  DelProfilesAddress,
   UpdateProfilesAddress
 } from '@/api/detail.js'
 // import hybridApp from '@/api/hybrid_app.js'
@@ -209,17 +214,23 @@ export default {
       list3,
       area: false,
       areaValue: '',
-      show: false,
+      show: true,
       ressList: '',
-      item: ''
+      item: '',
+      newOrUpdate: false,
+      IsDefault: false
     }
   },
   created () {
     this.handleAllOrderData()
     this.getUserAddRess()
   },
+  // computed: {
+  //   handle
+  // },
   methods: {
     handleAddList (show) {
+      this.getUserAddRess()
       this.show = !show
     },
     // 下单
@@ -284,7 +295,6 @@ export default {
         aRealName: content.name,
         aUpdateTime: this.$dayjs(new Date())
       })
-      window.localStorage.setItem('userArea', JSON.stringify(this.value3))
       this.allCretatedOrderData.aId = data
       this.userAddRess.name = content.name
       this.userAddRess.phone = content.tel.substr(0, 3) + '****' + content.tel.substr(7)
@@ -292,26 +302,6 @@ export default {
       // window.localStorage.setItem('addressInfo', JSON.stringify(content))
       this.$toast.success('保存成功')
       this.address = false
-    },
-    // 删除地址信息
-    onDelete () {
-      this.$dialog.confirm({
-        message: '确认删除吗？'
-      }).then(() => {
-        this.userAddRess.name = ''
-        this.userAddRess.phone = ''
-        this.userAddRess.site = ''
-        this.addressInfo.name = ''
-        this.addressInfo.tel = ''
-        this.addressInfo.city = ''
-        this.addressInfo.addressDetail = ''
-        this.value3 = []
-        this.address = !this.address
-        this.$toast.fail('删除成功')
-        // on confirm
-      }).catch(() => {
-        // on cancel
-      })
     },
     // 页面信息展示
     handleAllOrderData () {
@@ -341,7 +331,7 @@ export default {
       if (!data.length) {
         return
       }
-      // 所有订单列表
+      // 所有地址列表
       this.ressList = data
       // 默认地址
       const areaOwnData = data.filter(item => item.aIsDefault)
@@ -381,45 +371,142 @@ export default {
     },
     // 编辑
     async handleEditAddRess (item) {
+      console.log(item)
+      this.value3[0] = item.aProvinceId + '|1'
+      this.value3[1] = item.aCityId + '|2'
+      this.value3[2] = item.aCountyId + '|3'
       this.address = true
       this.item = item
       this.addressInfo.name = item.aRealName
       this.addressInfo.tel = item.aMobilePhone
       this.addressInfo.city = item.aProvinceName + ' ' + item.aCityName + ' ' + item.aCountyName
       this.addressInfo.addressDetail = item.aAddress
+      this.newOrUpdate = false
     },
     // 保存更新数据
     async handleUpdateAddress (addressInfo) {
-      if (!this.handleisShowAddress(addressInfo)) {
+      if (!(this.handleisShowAddress(addressInfo))) {
         return
       }
-      const item = this.item
-      await UpdateProfilesAddress({
-        aProvinceId: this.value3[0].split('|')[0],
-        aCountyId: this.value3[1].split('|')[0],
-        aCityId: this.value3[2].split('|')[0],
-        aProvinceName: addressInfo.city.split(' ')[0],
-        aUpdateTime: this.$dayjs(new Date()),
-        aMobilePhone: addressInfo.tel,
-        aIsDefault: item.aIsDefault,
-        aAddTime: item.aAddTime,
-        aRealName: addressInfo.name,
-        aCountyName: addressInfo.city.split(' ')[2],
-        aAddress: addressInfo.addressDetail,
-        aCityName: addressInfo.city.split(' ')[1],
-        aId: item.aId
+      // false
+      if (!this.newOrUpdate) {
+        const item = this.item
+        if (!this.value3.length) {
+          this.value3 = []
+          this.value3.push(item.aProvinceId + '|1')
+          this.value3.push(item.aCityId + '|2')
+          this.value3.push(item.aCountyId + '|3')
+        }
+        const upDateTime = this.$dayjs(new Date())
+        const aCityId = this.value3[1].split('|')[0]
+        const aCityName = addressInfo.city.split(' ')[1]
+        const aCountyId = this.value3[2].split('|')[0]
+        const aCountyName = addressInfo.city.split(' ')[2]
+        const aProvinceId = this.value3[0].split('|')[0]
+        const aProvinceName = addressInfo.city.split(' ')[0]
+        await UpdateProfilesAddress({
+          aProvinceId: aProvinceId,
+          aCountyId: aCountyId,
+          aCityId: aCityId,
+          aProvinceName: aProvinceName,
+          aUpdateTime: upDateTime,
+          aMobilePhone: addressInfo.tel,
+          aIsDefault: item.aIsDefault,
+          aAddTime: item.aAddTime,
+          aRealName: addressInfo.name,
+          aCountyName: aCountyName,
+          aAddress: addressInfo.addressDetail,
+          aCityName: aCityName,
+          aId: item.aId
+        })
+        this.getUserAddRess()
+        this.$toast.success('保存成功')
+        this.address = false
+      } else {
+        if (!this.handleisShowAddress(addressInfo)) {
+          return
+        }
+        const data = CreateProfilesAddress({
+          aAddTime: this.$dayjs(new Date()),
+          aAddress: addressInfo.addressDetail,
+          aCityId: this.value3[1].split('|')[0],
+          aCityName: addressInfo.city.split(' ')[1],
+          aCountyId: this.value3[2].split('|')[0],
+          aCountyName: addressInfo.city.split(' ')[2],
+          aMobilePhone: addressInfo.tel,
+          aProvinceId: this.value3[0].split('|')[0],
+          aProvinceName: addressInfo.city.split(' ')[0],
+          aRealName: addressInfo.name,
+          aUpdateTime: this.$dayjs(new Date())
+        })
+        this.allCretatedOrderData.aId = data
+        this.userAddRess.name = addressInfo.name
+        this.userAddRess.phone = addressInfo.tel.substr(0, 3) + '****' + addressInfo.tel.substr(7)
+        this.userAddRess.site = addressInfo.city + ' ' + addressInfo.addressDetail
+        this.getUserAddRess()
+        this.$toast.success('保存成功')
+        this.address = false
+      }
+    },
+    handleA (value) {
+      this.value3 = value
+    },
+    handleAddress () {
+      this.show = !this.show
+      this.getUserAddRess()
+    },
+    // 新建收货地址
+    handleCreatedNewRess () {
+      this.address = !this.address
+      this.addressInfo.name = ''
+      this.addressInfo.tel = ''
+      this.addressInfo.city = ''
+      this.addressInfo.addressDetail = ''
+      this.value3 = []
+      this.newOrUpdate = true
+    },
+    handleDeleteRess (item) {
+      this.$dialog.confirm({
+        message: '确认删除该地址吗？'
+      }).then(async () => {
+        const data = await DelProfilesAddress(item.aId)
+        if (data === '删除地址成功') {
+          this.ressList = this.ressList.filter(r => r.aId !== item.aId)
+          for (let k in this.userAddRess) {
+            this.userAddRess[k] = ''
+          }
+          for (let k in this.addressInfo) {
+            this.addressInfo[k] = ''
+          }
+          this.$toast.success('删除成功')
+        } else {
+          this.$toast.fail('出现意外错误,请重试')
+        }
       })
-      // item.aRealName =
-      // item.aMobilePhone =
-      // item.aProvinceName =
-      // item.aCityName =
-      // item.aAddress =
-      // item.aCountyName =
-      // item.aCountyName =
-      // item.aCountyName =
-      // item.aCountyName =
-      window.localStorage.setItem('userArea', JSON.stringify(this.value3))
-      this.address = false
+    },
+    handledefauladdress (item) {
+      this.$dialog.confirm({
+        message: '是否将改地址设为默认地址'
+      }).then(async () => {
+        await UpdateProfilesAddress({
+          aProvinceId: item.aProvinceId,
+          aCountyId: item.aCountyId,
+          aCityId: item.aCityId,
+          aProvinceName: item.aProvinceName,
+          aUpdateTime: item.aUpdateTime,
+          aMobilePhone: item.aMobilePhone,
+          aIsDefault: true,
+          aAddTime: item.aAddTime,
+          aRealName: item.aRealName,
+          aCountyName: item.aCountyName,
+          aAddress: item.aAddress,
+          aCityName: item.aCityName,
+          aId: item.aId
+        })
+        this.getUserAddRess()
+      }).catch(() => {
+        this.$toast('已取消！')
+      })
     }
   }
 }
@@ -480,11 +567,17 @@ export default {
   }
   .user span:nth-child(1) {
     font-weight: 700;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
   }
   .user span:nth-child(2) {
     font-weight: 700;
     padding-left: 30px;
     position: absolute;
+    top: 30px;
+    left: 340px;
   }
   .homeList {
     position: absolute;
@@ -546,8 +639,8 @@ export default {
 }
 .van-switch {
   font-size: 32px!important;
-  position: absolute;
-  top: 25px;
+  // position: absolute;
+  // top: 25px;
   right: 0;
 }
 .sumOfManey {
@@ -586,10 +679,14 @@ export default {
   padding-left: 20px;
 }
 .addressList {
+  width: 100%;
+  height: 147px;
   text-align: center;
-  position: absolute;
-  top: 50px;
-  left: 250px;
+  line-height: 147px;
+  background-color: #fff;
+  // position: absolute;
+  // top: 50px;
+  // left: 250px;
   color: #666;
   font-size: 28px;
 }
@@ -656,6 +753,10 @@ export default {
     position: absolute;
     left: 23px;
     bottom: 6px;
+  }
+  .newAddress {
+    position: fixed;
+    bottom: 0;
   }
 }
 </style>
