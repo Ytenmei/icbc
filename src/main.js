@@ -8,9 +8,28 @@ import 'amfe-flexible/index.js'
 import './assets/font/iconfont.js'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
+// import vueResource from 'vue-resource'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
+import Vuex from 'vuex'
+import vuexI18n from 'vuex-i18n'
 dayjs.extend(customParseFormat)
-
+// Vue.use(vueResource)
+Vue.use(Vuex)
+const a = new Vuex.Store({
+  modules: {
+    i18n: vuexI18n.store
+  }
+})
+Vue.use(vuexI18n.plugin, a)
+const translationsEn = {
+  'content': 'This is some {type} content'
+}
+// translations can be kept in separate files for each language
+// i.e. resources/i18n/de.json.
+// add translations directly to the application
+Vue.i18n.add('en', translationsEn)
+// set the start locale to use
+Vue.i18n.set('en')
 Vue.use(Vant)
 Vue.use(Lazyload)
 Vue.config.productionTip = false

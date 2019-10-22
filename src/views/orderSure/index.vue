@@ -180,8 +180,8 @@ import {
   UpdateProfilesAddress
 } from '@/api/detail.js'
 // import hybridApp from '@/api/hybrid_app.js'
-import { Picker } from 'vux'
-
+// import { Picker } from 'vux'
+import Picker from 'vux/src/components/picker'
 export default {
   name: 'orderSure',
   components: {
@@ -214,7 +214,7 @@ export default {
       list3,
       area: false,
       areaValue: '',
-      show: true,
+      show: false,
       ressList: '',
       item: '',
       newOrUpdate: false,
@@ -482,7 +482,7 @@ export default {
         } else {
           this.$toast.fail('出现意外错误,请重试')
         }
-      })
+      }).catch(() => {})
     },
     handledefauladdress (item) {
       this.$dialog.confirm({

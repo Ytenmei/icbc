@@ -2,7 +2,7 @@
   <div class="goodList">
     <template>
       <van-nav-bar fixed title="福卡商城">
-        <van-icon name="arrow-left" @click="handleBackICBC" slot="left" color="red" />
+        <van-icon name="arrow-left" @click="handleBackICBC()" slot="left" color="red" />
       </van-nav-bar>
     </template>
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
@@ -49,6 +49,7 @@
 </template>
 
 <script>
+import hybridApp from '@/api/hybrid_app.js'
 import { GetSellerProductByPage } from '@/api/detail.js'
 export default {
   name: 'goodList',
@@ -73,6 +74,7 @@ export default {
       this.loading = false
     },
     handleBackICBC () {
+      hybridApp.back()
     },
     handleSkip (url) {
       window.location.href = 'http://' + url.sUrl
@@ -101,6 +103,8 @@ export default {
         this.isLoading = false
         this.$toast('刷新成功')
       }
+    },
+    onLoaging () {
     }
   }
 }

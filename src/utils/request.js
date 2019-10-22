@@ -1,6 +1,5 @@
 import axios from 'axios'
 import JSONbig from 'json-bigint'
-
 const request = axios.create({
   baseURL: ''
 })

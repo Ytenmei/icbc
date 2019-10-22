@@ -378,8 +378,8 @@ function callLogin(param){
 			$("#loginSuc").text("中途登录成功！")
 		},
 		error : function(XMLHttpRequest, textStatus, errorThrown) {
-			alert($.parseXML(XMLHttpRequest) + "," + textStatus + ","
-					+ errorThrown)
+            alert($.parseXML(XMLHttpRequest) + "," + textStatus + ","
+            + errorThrown)
 		}
 	})
 }
